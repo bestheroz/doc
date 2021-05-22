@@ -29,11 +29,13 @@ management:
 
 server {
         include /etc/nginx/conf.d/service-url.inc;
-        server_name     ...;
+        server_name     _;
         charset         utf-8;
+        listen 80 default_server;
+        listen [::]:80 default_server;
 
         location / {
-                proxy_pass      $service_url;
+                proxy_pass              $service_url;
                 proxy_set_header        X-Real-Ip $remote_addr;
                 proxy_set_header        x-Forwarded-For $proxy_add_x_forwarded_for;
                 proxy_set_header        Host $host;
