@@ -33,14 +33,20 @@ server {
         charset         utf-8;
         listen 80 default_server;
         listen [::]:80 default_server;
+        root /home/backofficeuser/public_html/dist;
 
         location / {
-                proxy_pass              $service_url;
+                try_files $uri $uri/ /index.html;
+        }
+
+        location /api/ {
+                proxy_pass      $service_url;
                 proxy_set_header        X-Real-Ip $remote_addr;
                 proxy_set_header        x-Forwarded-For $proxy_add_x_forwarded_for;
                 proxy_set_header        Host $host;
         }
 }
+
 ```
 
 3-2. service-url.inc
