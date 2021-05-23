@@ -113,7 +113,7 @@ vi /etc/sudoers
 
 ## Allow root to run any commands anywhere
 root    ALL=(ALL)   ALL
-targetuser  ALL=(ALL)   NOPASSWD:ALL
+appuser  ALL=(ALL)   NOPASSWD:ALL
 ```
 
 6. deploy.sh
