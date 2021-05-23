@@ -33,7 +33,7 @@ server {
         charset         utf-8;
         listen 80 default_server;
         listen [::]:80 default_server;
-        root /home/backofficeuser/public_html/dist;
+        root /home/appuser/public_html/dist;
 
         location / {
                 try_files $uri $uri/ /index.html;
