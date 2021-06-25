@@ -34,7 +34,9 @@ server {
         listen 80 default_server;
         listen [::]:80 default_server;
         root /home/appuser/public_html/dist;
+        proxy_hide_header Access-Control-Allow-Origin;
         add_header 'Access-Control-Allow-Origin' '*';
+        client_max_body_size 50m;
 
         location / {
                 try_files $uri $uri/ /index.html;
