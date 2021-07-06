@@ -38,7 +38,7 @@ server {
         add_header 'Access-Control-Allow-Origin' '*';
         client_max_body_size 50m;
 
-        location ~ (/api/|/swagger-ui.html|/swagger-ui/|/v3/) {
+        location ~ (/api/|/swagger-ui.html|/swagger-ui/|/v3/api-docs) {
                 proxy_pass      $service_url;
                 proxy_set_header        X-Real-Ip $remote_addr;
                 proxy_set_header        x-Forwarded-For $proxy_add_x_forwarded_for;
