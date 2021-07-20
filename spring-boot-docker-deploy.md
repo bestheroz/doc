@@ -25,7 +25,7 @@ management:
 3-1. app.conf
 
 ```conf
-# /etc/nginx/sites-available/app.conf
+# sudo vi /etc/nginx/sites-available/app.conf
 
 server {
         include /etc/nginx/conf.d/service-url.inc;
@@ -54,20 +54,20 @@ server {
 
 3-2. service-url.inc
 ```inc
-# /etc/nginx/conf.d/service-url.inc
+# sudo vi /etc/nginx/conf.d/service-url.inc
 
 set $service_url http://127.0.0.1:8000;
 ```
 
 3-3. sites-enabled symbolic link
 ```shell
-ln -s /etc/nginx/sites-available/app.conf /etc/nginx/sites-enabled
+sudo ln -s /etc/nginx/sites-available/app.conf /etc/nginx/sites-enabled
 ```
 
 3-4. restart nginx
 
 ```shell
-nginx -s reload
+sudo nginx -s reload
 ```
 
 4. Dockerfile
