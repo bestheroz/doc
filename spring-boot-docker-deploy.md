@@ -153,7 +153,7 @@ if [ "${res}" = 1 ]; then
   exit 1
 fi
 
-for cnt in {1..30} # 10번 실행
+for cnt in {1..20} # 20번 실행
 do
         echo "check server start.. #${cnt}"
 
@@ -166,11 +166,11 @@ do
                 break
         fi
 
-        echo "wait 10 seconds" # 10 초간 대기
+        echo "wait 3 seconds" # 3 초간 대기
         sleep 3
 done
 
-if [ $cnt -eq 30 ] # 10번동안 실행이 안되었으면 배포 실패, 강제 종료
+if [ $cnt -eq 20 ] # 20번동안 실행이 안되었으면 배포 실패, 강제 종료
 then
         echo "deployment failed."
         exit 1
