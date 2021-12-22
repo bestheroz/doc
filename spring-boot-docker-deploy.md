@@ -67,7 +67,7 @@ sudo ln -s /etc/nginx/sites-available/app.conf /etc/nginx/sites-enabled
 3-4. restart nginx
 
 ```shell
-sudo nginx -s reload
+sudo systemctl restart nginx
 ```
 
 4. Dockerfile
@@ -186,7 +186,7 @@ sudo sed -i "s/${TERMINATE_PORT}/${START_PORT}/" /etc/nginx/conf.d/service-url.i
 
 # 새로운 포트로 스프링부트가 구동 되고, nginx의 포트를 변경해주었다면, nginx 재시작해줍니다.
 echo "nginx reload.."
-sudo nginx -s reload
+sudo systemctl restart nginx
 
 # 기존에 실행 중이었던 docker-compose는 종료시켜줍니다.
 echo "app-api-${TERMINATE_CONTAINER} down"
