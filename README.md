@@ -9,18 +9,13 @@
 ##### 아키텍처가 있다면
 
 - 소프트웨어의 큰 그림을 이해하기 쉬움
-
   - 코드를 다 확인하지 않아도, 일관된 코드 구조로 흐름을 쉽게 유추할 수 있음
     - 개발의 생산성 향상
     - 개발자의 커뮤니케이션 비용을 줄일 수 있음
-
 - 트레이드 오프
-
   - 코드를 작성하거나 읽어야 할 때 알아야 될 규칙이 늘어남
     - 팀원 전체가 프로젝트의 아키텍처 패턴에 익숙해야 함
     - 전반적으로 작성해야하는 코드의 양이 늘어남
-
-  
 
 ##### 아키텍처가 없다면
 
@@ -173,6 +168,8 @@ public class AdminService {
 
 소프트웨어를 구성하는 각각의 컴포넌트들을 독립적인 프로젝트들로 분리하는 것
 
+일반적으로 서비스가 성장하고 프로젝트 규모가 커질 때 모놀리식에서 마이크로서비스로 전환함
+
 ![image-20220628211720362](/Users/bestheroz/Library/Application Support/typora-user-images/image-20220628211720362.png)
 
 - 서로의 데이터처리가 필요한 경우 서로간의 HTTP 통신
@@ -187,6 +184,225 @@ public class AdminService {
 
 - 테스트 난이도가 굉장히 높음
 - DDD, EDA 의 개념을 이해하는 난이도가 굉장히 높음
+- 처음에 어떤 기준으로 마이크로서비스를 나눌지 결정이 어려움
+
+## 프로그래밍 패러다임
+
+C언어 - 절차지향 언어
+
+Java - 객체지향 언어
+
+Python - 두 패러다임을 모두 수용하는 멀티 패러다임 언어
+
+No silver bullet... 비판적인 관점에서 프로그래밍 패러다임을 바라보는 것이 중요
+
+### 절차지향 프로그래밍
+
+**함수적 호출 과정**을 중심으로 바라보고 설계
+
+![Programming Paradigm](https://images.velog.io/images/roo333/post/addd7947-5980-4fe5-a135-3ed4e6c317d6/15084493877125_C03p01ch03-procedural-vs-oop.png)
+
+**데이터가 중앙 집중식 관리**
+
+**직관적** (쉬움)
+
+우리가 프로그래밍을 처음 배우면 보통 절차지향으로 배우는 이유
+
+### 객체지향 프로그래밍
+
+객체라고 하는 단위에 책임을 명확히 하고 서로 협력하도록 프로그래밍 하는 패러다임
+
+**모든 것을 객체로 나누어 생각**, 필요할때 객체들을 활용하여 서로 협력하여 일을 수행
+
+상태를 가지고 있기 때문에 함수에 같은 입력을 넣었더라도 언제나 같은 출력이 보장되지 않음
+
+### 함수형 프로그래밍
+
+**외부 상태를 갖지 않는 함수들의 연속**으로 프로그램을 하는 패러다임
+
+외부 상태를 갖지 않는다는 의미는, **같은 입력을 넣었을 때 언제나 같은 출력**을 내보낸다는 것
+
+한번 초기화한 변수는 변하지 않음, 이런 특성을 **불변성**이라고 하는데, 이 **불변성**을 통해 안전성을 얻을 수 있음
+
+```python
+c = 1
+
+def func(a: int, b: int) -> int:
+  return a + b + c # c 라는 외부 값, 상태가 포함되어 있기에 함수형이 아님
+```
+
+함수형
+
+```python
+def func(a: int, b: int, c: int) -> int:
+  return a + b + c # 주어진 파라미터만 사용, 별도의 상태가 없음
+```
+
+수학에서 `f(x) = y` 라는 함수가 있을 때 `f`에 `x`를 입력주면 항상 `y`라는 출력을 얻음, 이처럼 함수형 프로그래밍은 같은 입력을 주었을 때 항상 같은 값을 출력하도록 하는 것
+
+함수형 프로그래밍의 중심인 함수는 입력(parameter)과 출력(result)이 될 수도 있기에, 함수를 결합하고 조합하기 쉬워져 간결한 코드 작성이 가능
+
+## 클린코드
+
+#### 함수
+
+1. 함수의 역할은 하나만 할 수 있도록 하자(**SRP**: Single Responsibility Principle)
+
+- as-is
+
+```python
+def create_user(email, password):
+  if '@' not in email or len(password) < 6 :
+    raise Exception("유저 정보를 제대로 입력하세요")
+   	
+  user = {"email": email, "password": password}
+  
+  database = Database("mysql")
+  database.add(user)
+  
+  email_client = EmailClient()
+  email_client.set_config(...)
+  email_client.send(email, "회원가입을 축하합니다")
+  
+  return True
+```
+
+- to-be
+
+```python
+def create_user(email, password):
+  validate_create_user(email, password)
+  
+  user = build_user(email, password)
+  
+  save_user(user)
+  send_email(email)
+  
+  return True
+
+def validate_create_user(email, password):
+  if '@' not in email or len(password) < 6 :
+    raise Exception("유저 정보를 제대로 입력하세요")
+
+def build_user(email, password):
+  return {
+    "email": email, 
+    "password": password
+  }
+  
+def save_user(user):
+  database = Database("mysql")
+  database.add(user)
+  
+def send_email(email):
+  email_client = EmailClient()
+  email_client.set_config(...)
+  email_client.send(email, "회원가입을 축하합니다")
+```
+
+2. 반복하지 말자(**DRY**: Do not Repeat Yourself)
+
+- as-is
+
+```python
+def create_user(email, password):
+  if '@' not in email or len(password) < 6 :
+    raise Exception("유저 정보를 제대로 입력하세요")
+  
+  ...
+  
+def update_user(email, password):
+  if '@' not in email or len(password) < 6 :
+    raise Exception("유저 정보를 제대로 입력하세요")
+    
+  ...
+```
+
+- to-be
+
+```python
+def validate_create_user(email, password):
+  if '@' not in email or len(password) < 6 :
+    raise Exception("유저 정보를 제대로 입력하세요")
+    
+def create_user(email, password):
+  validate_create_user(email, password)
+  ...
+  
+def update_user(email, password):
+  validate_create_user(email, password)
+  ...
+```
+
+3. 파라미터 수는 적게 유지하자
+
+```python
+#as-is
+def save_user(user_name, email, password, created):
+  ...
+  
+#to-be
+def save_user(user: User):
+  ...
+```
+
+4. 사이드 이팩트를 잘 핸들링하자
+
+```python
+# 사이드 이팩트가 없음
+def get_user_instance(email, password):
+  user = User(email, password)
+  return user
+
+# 사이드 이팩트가 있음
+def update_user_instance(user):
+  user.email = "new email" # 인자로 받은 user 객체를 업데이트 함
+  ...
+  
+ # 사이드 이팩트가 있음
+def create_user(email, password):
+  user = User(email, password)
+  start_db_session() # 외부의 DB Session 변화를 줄 수 있음
+  ...
+```
+
+##### 잘 핸들링 하는 방법
+
+1. 코드를 통해 충분히 예측할 수 있도록 네이밍을 잘하는 것이 중요
+
+- `update`, `change`,  `set` 같은 직관적인 prefix 를 붙여서 사이드 이펙트가 있음을 암시
+
+2. 함수의 사이드 이팩트가 있는 부분과 없는 부분을 잘 나눠서 관리
+
+- 명령(side effect 있음)과 조회(side effect 없음)를 분리하는 `CQRS` 방식을 사용
+
+3. 일반적으로 update 를 남발하기 보단 **순수 함수 형태**로 사용하는 것이 더 직관적이고 에러를 방지 할 수 있음
+
+- as-is
+
+```python
+carts = []
+
+# 사이드 이팩트를 발생시킴
+def add_cart(product):
+  carts.append(product)
+  
+product = Product(...)
+add_cart(product)
+```
+
+- to-be
+
+```python
+carts = []
+
+# 사이드 이팩트가 없는 순수함수
+def get_added_cart(product):
+  return [...carts, product]
+  
+product = Product(...)
+carts = get_added_cart(product)
+```
 
 # 자주 사용하는 용어
 
@@ -199,3 +415,20 @@ public class AdminService {
 #### 보일러 플레이트  (코드)
 
 최소한의 변경으로 여러곳에서 재사용되며, 반복적으로 비슷한 형태를 띄는 코드
+
+#### 순수 함수
+
+어떤 함수에 동일한 인자를 주었을 때 항상 같은 값을 리턴하는 함수  + 외부의 상태를 변경하지 않는 함수
+
+#### No Silver Bullet
+
+**만병 통치약**은 없다.
+
+1986년 프레드릭 브룩스가 만든 소프트웨어 공학 논문에 나오는 내용
+
+Silver Bullet은 원래 흡혈귀나 늑대인간 등의 전설에서 은으로 만든 탄환을 쏘아서 심장 부위를 맞추면 일거에 죽일 수 있다는 전설에서 유래된 말
+
+silver bullet 이란 비장의 무기, 만반의 대책, 묘책 등의 의미
+
+
+
