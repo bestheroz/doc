@@ -1,5 +1,223 @@
 # 개념 정리장
 
+## 동기와 비동기, 블락과 논블락
+
+### 동기(Synchronous)
+
+**동기**방식은 요청한 작업에 대해 관심을 가지고 기다리는 방식
+
+요청을 했을 때 시간이 많이 걸리더라도 결과를 기다려야 함
+
+### 비동기(Asynchronous)
+
+**비동기**방식은 요청한 작업에 대해 관심을 버리고 기다리지 않는 방식
+
+요청을 하고 다른 일을 처리
+
+![동기(Sync) 와 비동기(ASync)](https://t1.daumcdn.net/cfile/tistory/2776293757C7D0C522)
+
+### 블락(Block)
+
+일반적으로 함수 A가 함수 B를 호출하면, 프로세스의 제어권은 함수 B로 넘어감
+함수 B가 프로세스의 제어권을 가지고 있는 동안 함수 A는 아무것도 하지 않게 되는데, 이 상태를 **블락**이라고 함
+또 이런 함수 B를 블락킹 함수라고 함
+함수 B가 모두 실행되고, 프로세스의 제어권이 다시 함수 A로 오게 되면 함수 A의 **블락** 상태는 해제됨
+
+### 논블락(Nonblock)
+
+함수 A에서 함수 B를 스레드로 생성하는 함수를 호출했을 때 스레드를 생성하는 함수는 함수 B를 별도의 스레드로 생성하고, 특정 객체를 바로 리턴함
+함수 A가 있는 스레드는 함수 호출 이후의 일을 계속해서 하게됨
+이 과정에서 함수 A는 **블락**상태를 가지지 않으며, 이 상태를 **논블락**이라고 함
+또 이런 함수 B를 논블락킹 함수라고 함
+
+블락/논블락을 접하는 가장 대표적인 사례가 I/O 관련 코드를 작성할 때임
+
+### 동기/비동기 vs 블락/논블락의 차이
+
+![추가적인 Blocking / Non-Blocking의 개념에 대해서 - 인프런 | 강의 공지사항](https://cdn.inflearn.com/public/comments/08f0d98d-5a36-4701-880e-e3ca0189d2a3/%E1%84%8C%E1%85%A5%E1%86%BC%E1%84%85%E1%85%B5.png)
+
+동기/비동기는 한 작업에서 다른 작업의 작업완료 여부에 관심이 있느냐/없느냐에 있음
+
+- 관심이 있다면 **동기**
+- 관심이 없다면 **비동기**
+
+블락/논블락은 프로세스 제어권을 뺏기는 상태에 대한 내용
+
+- 함수 A가 함수 B를 호출하고 B가 실행되는 동안 프로세스 제어권을 뺏겨 본인 로직을 실행하지 못하는 경우 **블락**
+- 반면 프로세스 제어권을 뺏기지 않고 바로 리턴 받아 본인의 로직을 실행하는 **논블락**
+
+일반적으로 **동기/블락** 형태와 **비동기/논블락** 방식이 쓰입니다.
+
+- **동기/블락** 방식은 이해하기 쉽고 직관적이지만 일반적으로 **느림**
+- **비동기/논블락** 방식은 이해하기 어렵고, 프로그램 흐름도 어려워지지만 일반적으로 **빠름**
+
+##### 동기 / 블락
+
+```python
+# sync / block
+import time
+
+def a():
+    print("start in a()")
+    time.sleep(2)
+    print("finished in a()")
+
+def b():
+    print("start in b()")
+    time.sleep(2)
+    print("finished in b()")
+
+def task():
+    print("start in task()")
+    a()
+    b()
+    print("finished in task()")
+
+task()
+
+# 실행결과
+start in task()
+start in a()
+finished in a()
+start in b()
+finished in b()
+finished in task()
+```
+
+##### 비동기 / 논블락
+
+```python
+# async / non-block
+import asyncio
+
+async def a():
+    print("start in a()")
+    await asyncio.sleep(2)
+    print("finished in a()")
+
+async def b():
+    print("start in b()")
+    await asyncio.sleep(2)
+    print("finished in b()")
+
+async def task():
+    print("start in task()")
+    asyncio.create_task(a())
+    asyncio.create_task(b())
+    print("finished in task()")
+    await asyncio.sleep(3)
+
+async def main():
+    await task()
+
+asyncio.run(main())
+
+# 실행결과
+start in task()
+finished in task()
+start in a()
+start in b()
+finished in a()
+finished in b()
+```
+
+##### 동기 / 논블락
+
+흔한 경우는 아니지만 종종 쓰임
+
+```python
+# sync / non-block
+import asyncio
+
+global a_task_success
+a_task_success = False
+
+async def a():
+    print("doing ... in a()")
+    await asyncio.sleep(3)
+    print("finished a")
+    global a_task_success
+    a_task_success = True
+
+async def task():
+    print("doing task ...")
+    asyncio.create_task(a())
+    print("doing something ...")
+    global a_task_success
+    while a_task_success is False:
+        print("waiting a to be finished ...")
+        await asyncio.sleep(1)
+
+    print("finished task")
+
+asyncio.run(task())
+
+# 실행결과
+doing task ...
+doing something ...
+waiting a to be finished ...
+doing ... in a()
+waiting a to be finished ...
+waiting a to be finished ...
+finished a
+finished task
+```
+
+##### 비동기/블락
+
+```python
+# async / block
+import asyncio
+
+async def a():
+    print("start in a()")
+    await asyncio.sleep(3)
+    print("finished in a()")
+
+async def task():
+    print("doing task ...")
+    value = await a()
+    print("doing something ... in task()")
+    print("finished in task()")
+
+asyncio.run(task())
+
+# 실행 결과
+doing task ...
+start in a()
+finished in a()
+doing something ... in task()
+finished in task()
+```
+
+
+
+## 병렬성과 동시성
+
+CPU가 쉴 틈 없이 한 번에 주어진 테스크들을 빠르게 처리되다 보니 컴퓨터 사용자는 사실상 모든 프로세스의 명령이 "동시에" 처리된다고 느끼게 됨, 이것을 동시성(Concurrency)이라고 함
+
+- 동시성이라는 개념은 물리적으로 CPU 1개의 코어에서만 동작하는 개념은 아님
+
+- 제한된 자원에서 여러 작업을 한번에 실행시키려는 논리적인 개념
+
+### 동시성(Concurrency)
+
+![img](https://velog.velcdn.com/images%2Fcha-suyeon%2Fpost%2Fe13b6da0-c211-44d6-a8bf-a7dee3d539b3%2Fimage.png)
+
+### 병렬성(Parallelism)
+
+![img](https://velog.velcdn.com/images%2Fcha-suyeon%2Fpost%2Fd7ddc0d2-23b6-41fe-b406-3c1284634e22%2Fimage.png)
+
+- **동시성**은 실제로는 하나의 명령을 빠르게 수행하지만 처리속도가 매우 빨라 여러 작업이 동시에 진행되는 것처럼 "느껴지게" 해줌
+
+- **병렬성**은 "실제로" 여러 개의 명령어를 동시에 실행하는 것
+
+### 병렬 동시 실행
+
+![멀티태스킹(1) - 동시성, 병렬성(Concurrency, Parallelism)](https://velog.velcdn.com/images%2Fcha-suyeon%2Fpost%2F16ef40eb-e9b8-45cb-9a7e-00a08d946907%2Fimage.png)
+
+
+
 ## 아키텍처란
 
 소프트웨어의 전체적인 구조를 잡아주는 설계도
@@ -170,7 +388,7 @@ public class AdminService {
 
 일반적으로 서비스가 성장하고 프로젝트 규모가 커질 때 모놀리식에서 마이크로서비스로 전환함
 
-![image-20220628211720362](/Users/bestheroz/Library/Application Support/typora-user-images/image-20220628211720362.png)
+![마이크로 서비스 아키텍처 & 모놀리틱 아키텍처](https://images.velog.io/images/dsunni/post/b61ec810-1347-4022-91e6-2b8c139d3d06/assets_-LE8_fwLnI2gUuguYTDU_-LH6l3KoYH7hthyWqBvj_-LH6l4H0EWQvNC1mq4_P_monolithic-vs-microservice.png)
 
 - 서로의 데이터처리가 필요한 경우 서로간의 HTTP 통신
 
@@ -215,6 +433,292 @@ No silver bullet... 비판적인 관점에서 프로그래밍 패러다임을 �
 **모든 것을 객체로 나누어 생각**, 필요할때 객체들을 활용하여 서로 협력하여 일을 수행
 
 상태를 가지고 있기 때문에 함수에 같은 입력을 넣었더라도 언제나 같은 출력이 보장되지 않음
+
+#### SOLID
+
+- Single Responsibility Principle(단일 책임 원칙)
+
+객체는 하나의 책임만을 지녀야 한다는 원칙
+
+as-is
+
+```python
+# 하나의 클래스(객체)가 여러 책임을 가지고 있음
+class Employee:
+    def coding(self):
+        print("코딩을 합니다.")
+
+    def design(self):
+        print("디자인을 합니다")
+
+    def analyze(self):
+        print("분석을 합니다.")
+```
+
+to-be
+
+```python
+# 각 객체는 역할을 나눠서 가지고 있음
+class Developer:
+    def coding(self):
+        print("코딩을 합니다.")
+
+class Designer:
+    def design(self):
+        print("디자인을 합니다")
+
+class Analyst:
+    def analyze(self):
+        print("분석을 합니다.")
+```
+
+- Open Closed(개방 폐쇄 원칙)
+
+객체의 확장에는 열려있고, 수정에는 닫혀있게 해야한다는 원칙
+
+as-is
+
+```python
+class Developer:
+    def coding(self):
+        print("코딩을 합니다.")
+
+class Designer:
+    def design(self):
+        print("디자인을 합니다")
+
+class Analyst:
+    def analyze(self):
+        print("분석을 합니다.")
+
+class Company:
+    def __init__(self, employees):
+        self.employees = employees
+
+    # employee 가 다양해 질수록 코드를 계속 변경해야 한다.
+    def make_work(self):
+        for employee in self.employees:
+            if type(employee) == Developer:
+                employee.coding()
+            elif type(employee) == Designer:
+                employee.design()
+            elif type(employee) == Analyst:
+                employee.analyze()
+
+```
+
+to-be
+
+```python
+# 각 객체들의 역할을 아우르는 추상 클래스(고수준)을 생성합니다.
+import abc
+from typing import List
+
+class Employee(metaclass=abc.ABCMeta):
+    @abc.abstractmethod
+    def work(self):
+        ...
+
+class Developer(Employee):
+    def work(self):
+        print("코딩을 합니다.")
+
+class Designer(Employee):
+    def work(self):
+        print("디자인을 합니다")
+
+class Analyst(Employee):
+    def work(self):
+        print("분석을 합니다.")
+
+# 상속을 통해 쉽게 구현이 가능함 -> 확장이 열려있다.
+class Manager(Employee):
+    def work(self):
+        print("매니징을 합니다.")
+
+class Company:
+    def __init__(self, employees: List[Employee]):
+        self.employees = employees
+
+    # employee 가 늘어나더라도 변경에는 닫혀있다.
+    def make_work(self):
+        for employee in self.employees:
+            employee.work()
+```
+
+- Liskov Substitution Priciple(리스코브 치환 원칙)
+
+부모 객체의 역할은 자식 객체도 할 수 있어야 된다는 원칙
+
+ ```python
+# 위반 사례1
+class Employee(metaclass=abc.ABCMeta):
+    @abc.abstractmethod
+    def work(self):
+        ...
+
+class Developer(Employee):
+    def work(self):
+        print("코딩을 합니다.")
+        return ["if...", "for..."]
+
+class FrontEndDeveloper(Developer):
+    def work(self):
+        print("프론트엔드 개발을 합니다")
+        # 결과를 반환하지 않음
+
+if __name__ == "__main__":
+
+    def make_code(developer: Developer):
+        code = developer.work()
+        print(f"총 {len(code)}줄의 코드를 작성하였습니다.")
+
+    make_code(Developer())
+    make_code(FrontEndDeveloper())
+ ```
+
+자식 객체가 부모 객체를 상속해야 하는지를 반드시 확인
+
+```python
+# 위반 사례2
+# 유명한 직사각형, 정사각형 사례
+# 일반적으로 정사각형은 직사각형입니다. 즉 정사각형 is 직사각형의 관계이며, 이는 상속이 가능합니다.
+# 직사각형
+class Rectangle:
+    def get_width(self):
+        return self.width
+
+    def get_height(self):
+        return self.height
+
+    def set_width(self, width):
+        self.width = width
+
+    def set_height(self, height):
+        self.height = height
+
+# 정사각형
+class Square(Rectangle):
+    def set_width(self, width):
+        self.width = width
+        self.height = width
+
+    def set_height(self, height):
+        self.width = height
+        self.height = height
+
+if __name__ == "__main__":
+    square = Square()
+    square.set_width(20)
+    square.set_height(30)
+    check = square.get_width() == 20 and square.get_height() == 30
+```
+
+- Interface Segregation (인터페이스 분리 원칙)
+
+클라이언트가 자신이 이용하지 않는 메서드는 의존하지 않아야 한다는 원칙
+
+인테페이스가 하나의 책임만을 가져야 함
+
+as-is
+
+```python
+import abc
+
+class Smartphone(metaclass=abc.ABCMeta):
+    @abc.abstractmethod
+    def call(self):
+        ...
+
+    @abc.abstractmethod
+    def send_message(self):
+        ...
+
+    @abc.abstractmethod
+    def see_youtube(self):
+        ...
+
+    @abc.abstractmethod
+    def take_picture(self):
+        ...
+
+# 카메라가 없는 클래스에서 take_picture는 불필요한 메서드가 된다.
+class PhoneWithNoCamera(Smartphone):
+    ...
+```
+
+to-be
+
+```python
+import abc
+
+class Telephone(metaclass=abc.ABCMeta):
+    @abc.abstractmethod
+    def call(self):
+        ...
+
+    @abc.abstractmethod
+    def send_message(self):
+        ...
+
+class Camera(metaclass=abc.ABCMeta):
+    @abc.abstractmethod
+    def take_picture(self):
+        ...
+
+class Application(metaclass=abc.ABCMeta):
+    @abc.abstractmethod
+    def see_youtube(self):
+        ...
+
+class PhoneWithNoCamera(Telephone, Application):
+    ...
+```
+
+- Dependency Inversion(의존성 역전 원칙)
+
+의존성을 항상 고수준으로 향하게 하여 예측할 수 없는 의존성의 변화를 줄이자는 원칙
+
+일반적으로 의존성을 가지는 대상이 변경되면 의존하는 주체도 함께 변경됨
+만약 자주 바뀌는 구현체(저수준)를 의존하게 된다면 코드의 변경이 잦을 것이며 버그와 사이드 이펙트가 날 확률이 높아짐
+이때 코드가 덜 바뀌는 인터페이스나 추상 클래스(고수준)를 의존한다면 상태적으로 안정적인 코드를 작성할 수 있음
+
+as-is
+
+```python
+class App:
+    def __init__(self):
+        self.inmemory_db = InMemoryDatabase()  # 구현체에 의존하고 있음
+
+    def save_user(self, data):
+        self.inmemory_db.store_data(data)
+
+if __name__ == "__main__":
+    app = App()
+    app.save_user({"id": 1, "name": "grab"})
+```
+
+to-be
+
+```python
+class App:
+    def __init__(self, database: Database):  # 고수준에 의존
+        self.database = database
+
+    def save_user(self, data):
+        self.database.store_data(data)
+
+if __name__ == "__main__":
+    inmemory_db = InmemoryDatabase()
+    app = App(inmemory_db)
+    app.save_user({"id": 1, "name": "grab"})
+```
+
+의존성 주입을 해주기 위해선 결국 이를 사용하는 클라이언트에서 의존성들을 일일이 넣어줘야 함
+만약 잘못 코드를 작성하면 의존성 관계가 복잡해질 수 있음
+그래서 보통 의존성 주입을 별도로 관리해주는 라이브러리나 프레임워크를 사용
+
+
 
 ### 함수형 프로그래밍
 
