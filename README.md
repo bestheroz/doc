@@ -1,5 +1,27 @@
 # 개념 정리장
 
+> 개발하면서 알아간 내용들을 정리하였습니다.
+
+## CQS
+
+**C**ommand and **Q**uery **S**eparation. 
+
+CQS는 명령과 조회를 연산 수준에서 분리
+
+## CQRS패턴
+
+**C**ommand **Q**uery **R**esponsibility **S**egregation, 명령 조회 책임 분리 패턴(읽기와 쓰기 분리)
+
+- CQRS는 CQS 원리에 기원
+- 사실 CQRS는 처음엔 CQS의 확장으로 얘기되었음
+- CQS는 명령과 조회를 연산 수준에서 분리하는 반면 CQRS는 개체(object)나 시스템(혹은 하위 시스템) 수준에서 분리
+
+![쓰기와 읽기의 분리 과정](https://engineering-skcc.github.io/assets/images/msa/MSA3.14.png)
+
+- 윗 그림은 결과적 일관성(Eventual Consistency)추구
+
+
+
 ## 동기와 비동기, 블락과 논블락
 
 ### 동기(Synchronous)
@@ -933,6 +955,3 @@ carts = get_added_cart(product)
 Silver Bullet은 원래 흡혈귀나 늑대인간 등의 전설에서 은으로 만든 탄환을 쏘아서 심장 부위를 맞추면 일거에 죽일 수 있다는 전설에서 유래된 말
 
 silver bullet 이란 비장의 무기, 만반의 대책, 묘책 등의 의미
-
-
-
