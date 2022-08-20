@@ -18,7 +18,7 @@ CQS는 명령과 조회를 연산 수준에서 분리
 
 ![쓰기와 읽기의 분리 과정](https://engineering-skcc.github.io/assets/images/msa/MSA3.14.png)
 
-- 윗 그림은 결과적 일관성(Eventual Consistency)추구
+- 윗 그림에서 Write Data Store 과 Read Data Store 은 결과적 일관성(Eventual Consistency)추구
 
 
 
