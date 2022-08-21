@@ -2,6 +2,19 @@
 
 > 개발하면서 알아간 내용들을 정리하였습니다.
 
+## 사이드카(Sidecar) 패턴
+
+![img](https://image.samsungsds.com/kr/insights/mesh_img03.jpg?queryString=20220820100250)
+
+- 모든 응용 프로그램 컨테이너에 사이드카 컨테이너를 추가하여 배포
+- 서비스에 들어오거나 나가는 모든 네트워크 트래픽을 처리
+- 가장 큰 특징은 비즈니스 로직이 포함된 실제 서비스와 사이드카가 병렬로 배치되기 때문에 서비스가 타 서비스를 직접 호출하는 것이 아니라 프록시(proxy)를 통해서 호출한다는 점
+- 따라서 대규모의 마이크로서비스 환경이더라도 별도 작업 없이 서비스 연결뿐만 아니라 로깅, 모니터링, 보안, 트래픽 제어가 가능
+
+![img](https://www.redhat.com/cms/managed-files/service-mesh-1680.png)
+
+
+
 ## CQS
 
 **C**ommand and **Q**uery **S**eparation. 
@@ -410,6 +423,8 @@ public class AdminService {
 
 일반적으로 서비스가 성장하고 프로젝트 규모가 커질 때 모놀리식에서 마이크로서비스로 전환함
 
+![img](https://www.redhat.com/cms/managed-files/microservices-1680.png)
+
 ![마이크로 서비스 아키텍처 & 모놀리틱 아키텍처](https://images.velog.io/images/dsunni/post/b61ec810-1347-4022-91e6-2b8c139d3d06/assets_-LE8_fwLnI2gUuguYTDU_-LH6l3KoYH7hthyWqBvj_-LH6l4H0EWQvNC1mq4_P_monolithic-vs-microservice.png)
 
 - 서로의 데이터처리가 필요한 경우 서로간의 HTTP 통신
@@ -441,28 +456,6 @@ No silver bullet... 비판적인 관점에서 프로그래밍 패러다임을 �
 **함수적 호출 과정**을 중심으로 바라보고 설계
 
 ![Programming Paradigm](https://images.velog.io/images/roo333/post/addd7947-5980-4fe5-a135-3ed4e6c317d6/15084493877125_C03p01ch03-procedural-vs-oop.png)
-
-**데이터가 중앙 집중식 관리**
-
-**직관적** (쉬움)
-
-우리가 프로그래밍을 처음 배우면 보통 절차지향으로 배우는 이유
-
-### 객체지향 프로그래밍
-
-객체라고 하는 단위에 책임을 명확히 하고 서로 협력하도록 프로그래밍 하는 패러다임
-
-**모든 것을 객체로 나누어 생각**, 필요할때 객체들을 활용하여 서로 협력하여 일을 수행
-
-상태를 가지고 있기 때문에 함수에 같은 입력을 넣었더라도 언제나 같은 출력이 보장되지 않음
-
-#### SOLID
-
-- Single Responsibility Principle(단일 책임 원칙)
-
-객체는 하나의 책임만을 지녀야 한다는 원칙
-
-as-is
 
 ```python
 # 하나의 클래스(객체)가 여러 책임을 가지고 있음
