@@ -4,6 +4,8 @@
 
 ## Duck Typing(덕 타이핑)
 
+![img](https://blog.kakaocdn.net/dn/bQnQxE/btqCbhsgJU0/1rtwjmE1NpPCK44yCKt2Pk/img.jpg)
+
 > 만약 어떤 새가 오리처럼 걷고, 헤엄치고, 꽥꽥거리는 소리를 낸다면 나는 그 새를 오리라고 부를 것
 
 - 덕 타이핑은 객체가 어떤 타입에 걸맞은 변수와 메소드를 지니면 객체를 해당 타입에 속하는 것으로 간주함
