@@ -2,6 +2,34 @@
 
 > 개발하면서 알아간 내용들을 정리하였습니다.
 
+## as-a-Service(클라우드 컴퓨팅 서비스)
+
+![img](https://www.redhat.com/cms/managed-files/iaas-paas-saas-diagram5.1-1638x1046.png)
+
+### 인프라(Infrastructure-as-a-Service, IaaS)
+
+예) **AWS, Microsoft Azure, Google Cloud**와 같은 퍼블릭 클라우드 공급업체가 IaaS
+
+제공업체가 사용자를 대신해 온사이트 데이터센터를 유지관리하거나 업데이트
+
+사용자는 애플리케이션 프로그래밍 인터페이스(API) 또는 대시보드를 통해 인프라에 액세스하고 이를 제어
+
+### 서비스로서의 플랫폼(Platforms-as-a-Service, PaaS)
+
+예) **AWS Elastic Beanstalk**, Heroku 및 Red Hat OpenShift
+
+사용자는 애플리케이션 코드를 작성, 빌드, 관리하지만 소프트웨어 업데이트 또는 하드웨어 유지관리와 같은 번거로움이 사라짐
+
+빌드 및 배포를 위한 환경이 사용자에게 제공
+
+### 서비스로서의 소프트웨어(Software-as-a-Service, SaaS)
+
+예) **Dropbox**, Salesforce, **Google Apps** 및 Red Hat Insights
+
+제공업체가 소프트웨어 업데이트, 버그 수정 및 기타 일반 소프트웨어 유지관리 작업을 처리
+
+사용자는 대시보드 또는 API를 통해 애플리케이션에 연결, 개별 시스템에 소프트웨어를 설치할 필요가 없으며 프로그램에 대한 그룹 액세스가 더욱 원활하고 안정적
+
 ## Duck Typing(덕 타이핑)
 
 ![img](https://blog.kakaocdn.net/dn/bQnQxE/btqCbhsgJU0/1rtwjmE1NpPCK44yCKt2Pk/img.jpg)
@@ -437,6 +465,8 @@ public class AdminService {
 
 ![마이크로 서비스 아키텍처 & 모놀리틱 아키텍처](https://images.velog.io/images/dsunni/post/b61ec810-1347-4022-91e6-2b8c139d3d06/assets_-LE8_fwLnI2gUuguYTDU_-LH6l3KoYH7hthyWqBvj_-LH6l4H0EWQvNC1mq4_P_monolithic-vs-microservice.png)
 
+![마이크로서비스란? SOA와 차이점 | SK(주) C&C's TECH BLOG](https://engineering-skcc.github.io/assets/images/MSA1.6.png)
+
 - 서로의 데이터처리가 필요한 경우 서로간의 HTTP 통신
 
 ##### 장점
@@ -450,6 +480,120 @@ public class AdminService {
 - 테스트 난이도가 굉장히 높음
 - DDD, EDA 의 개념을 이해하는 난이도가 굉장히 높음
 - 처음에 어떤 기준으로 마이크로서비스를 나눌지 결정이 어려움
+
+##### 구축의 난이도, 복잡성
+
+- 고도의 디커플링을 요구하며 재사용은 커플링을 유발하기 때문에 재사용보다 중복을 우선시 함
+- 잦은 네트워크 호출이 필요하므로 성능은 다소 부정적이며 보안 처리, 분산트랜잭션 등 난이도와 복잡도가 높아짐
+- 저장소 (데이터)의 완벽한 격리 필요하며, 통합 데이터 모델링 사상과 상충되며 데이터 중복, 복제가 고려되어야 함
+- 데이터 일관성 처리를 위한 결과적 일관성 매커니즘 필요(복잡도 증가)
+
+![img](https://static.wixstatic.com/media/73a3c2_b1064b21b626431292a1eaa827aa7c5d~mv2.png/v1/fill/w_1104,h_444,al_c,q_90,usm_0.66_1.00_0.01,enc_auto/73a3c2_b1064b21b626431292a1eaa827aa7c5d~mv2.png)
+
+##### 성공을 위한 조건들
+
+- **조직**: 특정 도메인에 자율적인 권한과 책임을 지는 DevOps 조직(개발 + 운영)
+
+- **인프라**: 언제나 쉽게 확장 가능한 유연한 인프라 구성 (온 디맨드 확장성, 탄력성)
+
+- **자동화**: 개발지원 도구 자동화, DevOps Infra(CI/CD)
+- **개발 프로세스**: 피드백 기반의 개발 프로세스, 반복/점진적인 애자일 프로세스
+- **개발 문화**: 공유/협업하고 학습하여 계속 진화하는 개발 문화(공유, 협업, 자율, 책임, 학습)
+- **설계 방식**: 데이터 중복, 결과적 일관성 추구
+
+
+
+##### 마이크로 서비스 성숙도
+
+![img](https://cdn.inflearn.com/public/files/courses/328412/2184ab1c-795c-4298-9ad7-447e89fb512f/%E1%84%89%E1%85%B3%E1%84%8F%E1%85%B3%E1%84%85%E1%85%B5%E1%86%AB%E1%84%89%E1%85%A3%E1%86%BA%202022-05-13%20%E1%84%8B%E1%85%A9%E1%84%92%E1%85%AE%2011.13.12.png)
+
+## EDA
+
+**E**vent **D**riven **A**rchitecture
+
+분산된 시스템에서 이벤트를 생성(발행)하고 발행된 이벤트를 수신자에게 전송하는 구조로 수신자는 그 이벤트를 처리하는 방식의 아키텍처
+
+분산 아키텍처 환경에서 상호 간 결합도를 낮추기 위해 **비동기 방식으로 메시지를 전달하는 패턴**으로 주로 Message Broker(`Kafka`, `RabbitMQ`)와 결합하여 구성
+
+![eda 4](https://akasai.space/static/7ba919f10f436c2f2d6684ad2226252f/c1b63/eda_4.png)
+
+##### 장점
+
+1. Loosely Coupling
+
+분산 시스템간 느슨한 결합도를 제공
+
+2. 분산된 시스템간 의존성 배제
+
+약속된 Message를 통해 통신하기 때문에 다른 시스템의 정보를 알 필요가 없으므로 시스템 간 의존성이 배제
+
+3. 확장성, 탄력성 향상
+
+##### 단점
+
+1. Broker Dependency
+
+시스템 간 의존도는 낮아지지만 메시지브로커에 대한 의존성이 발생
+
+만약 메시지 브로커의 장애가 발생하면 큰 장애로 확산될 가능성이 있음
+
+2. Transaction 단위 분리
+
+장애나 이슈발생시 Retry/Rollback에 대한 고려가 필요
+
+3. 시스템 Flow파악이 어려움
+
+4. 디버깅이 어려움
+
+##### EDA의 구성요소
+
+1. **Event Generator (Publisher, Producer, Creater)**
+
+표준화된 형식의 이벤트를 생성(발행)
+
+생성된 이벤트는 Event Channel로 전송
+
+2. **Event Channel (Bus)**
+
+Event Generator에서 Event Processing Engine으로 수집된 데이터를 전파하는 메커니즘
+
+즉, 이벤트를 필요로 하는 시스템까지 발송하는 역할
+
+3. **Event Processing Engine (Consumer, Processor)**
+
+수신한 이벤트를 식별/처리하는 역할
+
+처리 결과에 따라 새로운 이벤트를 생성할 수 있음
+
+Consumer는 이벤트의 송신자에 대한 정보를 알 필요가 없음
+
+![eda 2](https://akasai.space/static/c281ca3843c645c19e735dd11a992999/c0b7e/eda_2.webp)
+
+##### EDA의 동작 방식
+
+1. **Message 생성 (Publish/Subscribe)**
+
+   **이벤트**가 생성되면 `Subscriber(수신자)`에게 전달
+
+   이벤트는 반복되어 전달되지 않으며, 수신자는 송신자의 정보를 알 필요가 없음
+
+2. **Event Source**
+
+   `Event Processor`에게 이벤트를 전달하는 역할을 함
+
+   `Event Source`는 1개 이상일 수 있으며, 1개 이상의 `Event Processor`에게 전달
+
+3. **Event Processor**
+
+   수신된 이벤트에 대한 여러 `Action`을 수행하는 역할
+
+   단일 이벤트에 대하여 타임스템프를 추가한다거나, 파생 이벤트를 만드는 등의 작업을 수행
+
+4. **Event Consumer**
+
+   이벤트에 대한 처리를 함
+
+   실질적인 **Biz Logic**을 수행
 
 ## 프로그래밍 패러다임
 
