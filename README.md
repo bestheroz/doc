@@ -14,7 +14,7 @@
 - 프로그래밍 패러다임(programming_paradigm)
 - SOLID
 - 함수형 프로그래밍(Functional Programming)
+- Clustering 과 Replication 비교
 - IT - 자주 사용하는 용어사전
-
 
 
