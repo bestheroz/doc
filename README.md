@@ -19,6 +19,7 @@
 - [이벤트 루프](./event_loop.md)
 - [자바8, 11, 17에서의 인터페이스 변경점](./changing_interface_in_java8_11_17.md)
 - [트랜잭션 격리 수준(Isolation Level)](./isolation_level.md)
+- [Stream Operations](./Stream_Operations.md)
 - [IT - 자주 사용하는 용어사전](./dictionary.md)
 
 
