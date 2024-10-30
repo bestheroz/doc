@@ -1,4 +1,4 @@
-# Tread Local
+# 코틀린+코루틴에서의 컨텍스트 오염 방지
 
 Kotlin + Coroutine 환경에서 주로 사용한 Thread Local 에 대해 멀티 스레드환경에서 안전한지, 코루틴환경에서 안전한지 검증해보았습니다.
 
