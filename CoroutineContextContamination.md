@@ -1,6 +1,6 @@
 # Tread Local
 
-내가 Kotlin + Coroutine 환경에서 주로 사용한 Thread Local 에 대해 검증해보았습니다.
+Kotlin + Coroutine 환경에서 주로 사용한 Thread Local 에 대해 멀티 스레드환경에서 안전한지, 코루틴환경에서 안전한지 검증해보았습니다.
 
 ```Kotlin
 class RequestContextElement(
@@ -181,8 +181,9 @@ runBlocking(RequestContextElement(currentAttributes)) {
 
 **이러한 메커니즘들이 조합되어 멀티 스레드 환경에서도 각 스레드의 RequestAttributes가 독립적이고 안전하게 관리됨**
 
+## 하나의 스레드에서 여러 요청의 코루틴이 동시에 처리될때 안전한가?
 
-## 하나의 스레드에서 여러 요청의 코루틴이 동시에 처리될때의 이슈
+-> 결론: 컨텍스트가 오염되는 이슈가 발생함
 
 ```Kotlin
 // 스레드 1에서 실행
@@ -342,133 +343,89 @@ withRequestContext(requestAttributes) {
 
 
 ## 최종 적용 코드
+1. RequestContextElement와 SecurityContextElement 수정
+
+먼저, 기존에 ThreadContextElement를 구현하여 스레드 로컬 변수를 관리하던 방식을 변경합니다. 대신, 코루틴 컨텍스트에 데이터를 저장하는 간단한 컨텍스트 요소로 변경합니다.
 
 ```Kotlin
-/**
- * 요청 컨텍스트를 관리하는 클래스
- */
-data class RequestState(
-    val attributes: RequestAttributes,
+// RequestContextElement.kt
+class RequestContextElement(
+    val attributes: RequestAttributes
+) : CoroutineContext.Element {
+    companion object Key : CoroutineContext.Key<RequestContextElement>
+    override val key: CoroutineContext.Key<RequestContextElement> = Key
+}
+
+// SecurityContextElement.kt
+class SecurityContextElement(
     val securityContext: SecurityContext
-)
-
-class IsolatedRequestContext(
-    private val state: RequestState
-) : AbstractCoroutineContextElement(Key) {
-    companion object Key : CoroutineContext.Key<IsolatedRequestContext>
-
-    fun getState(): RequestState = state
+) : CoroutineContext.Element {
+    companion object Key : CoroutineContext.Key<SecurityContextElement>
+    override val key: CoroutineContext.Key<SecurityContextElement> = Key
 }
 
-/**
- * 요청별 격리된 컨텍스트를 설정하고 관리하는 클래스
- */
-class ContextManager {
-    companion object {
-        /**
-         * 현재 요청의 컨텍스트를 캡처하여 새로운 IsolatedRequestContext 생성
-         */
-        fun capture(): IsolatedRequestContext {
-            val state = RequestState(
-                attributes = RequestContextHolder.currentRequestAttributes(),
-                securityContext = SecurityContextHolder.getContext()
-            )
-            return IsolatedRequestContext(state)
-        }
+```
 
-        /**
-         * 주어진 컨텍스트로 RequestAttributes와 SecurityContext를 설정
-         */
-        fun setContext(state: RequestState) {
-            RequestContextHolder.setRequestAttributes(state.attributes)
-            SecurityContextHolder.setContext(state.securityContext)
-        }
+2. 헬퍼 함수 추가
 
-        /**
-         * 현재 컨텍스트를 저장하고 새 컨텍스트 설정
-         */
-        fun switchContext(newState: RequestState): RequestState {
-            val oldState = RequestState(
-                attributes = RequestContextHolder.getRequestAttributes(),
-                securityContext = SecurityContextHolder.getContext()
-            )
-            setContext(newState)
-            return oldState
-        }
-    }
-}
+코루틴 컨텍스트에서 쉽게 데이터를 가져올 수 있도록 헬퍼 함수를 추가합니다.
 
-/**
- * 코루틴 스코프 내에서 격리된 컨텍스트를 사용하기 위한 확장 함수
- */
-suspend fun <T> withIsolatedContext(
-    block: suspend CoroutineScope.() -> T
-): T = coroutineScope {
-    val isolatedContext = ContextManager.capture()
+```Kotlin
+// CoroutineContextExtensions.kt
+fun CoroutineContext.requestAttributes(): RequestAttributes? =
+    this[RequestContextElement]?.attributes
+
+fun CoroutineContext.securityContext(): SecurityContext? =
+    this[SecurityContextElement]?.securityContext
+
+```
+
+3. 컨트롤러 수정
+
+컨트롤러에서 runBlocking이나 launch를 사용할 때, 코루틴 컨텍스트에 RequestContextElement와 SecurityContextElement를 추가합니다.
+
+```Kotlin
+// Controller.kt
+fun getContractAllList(): ResponseEntity<ContractListResponse> = runBlocking {
+    val attributes = RequestContextHolder.currentRequestAttributes()
+    val securityContext = SecurityContextHolder.getContext()
     
-    withContext(isolatedContext) {
-        val oldState = ContextManager.switchContext(isolatedContext.getState())
-        try {
-            block()
-        } finally {
-            ContextManager.setContext(oldState)
-        }
+    // 코루틴 컨텍스트에 요소 추가
+    val context = coroutineContext + RequestContextElement(attributes) + SecurityContextElement(securityContext)
+    
+    withContext(context) {
+        // 코루틴 컨텍스트에서 데이터 가져오기
+        val currentAttributes = coroutineContext.requestAttributes()
+            ?: throw IllegalStateException("RequestAttributes not found in coroutine context")
+        val currentSecurityContext = coroutineContext.securityContext()
+            ?: throw IllegalStateException("SecurityContext not found in coroutine context")
+        // 필요한 로직 수행
     }
 }
-```
-사용 예시
-1. 컨트롤러에서 사용:
-```Kotlin
-@RestController
-class ContractController(
-    private val contractService: ContractService
-) {
-    @PostMapping("/contracts")
-    suspend fun getContractList(): ResponseEntity<ContractListResponse> =
-        withIsolatedContext {
-            val result = contractService.getContractList()
-            ResponseEntity.ok(result)
-        }
-} 
+
 ```
 
-2. 서비스에서 사용:
+4. 필요한 곳에서 코루틴 컨텍스트 사용
+
+만약 다른 서비스나 컴포넌트에서 RequestAttributes나 SecurityContext가 필요하다면, 코루틴 컨텍스트에서 가져옵니다.
+
 ```Kotlin
-@Service
-class ContractService {
-    suspend fun getContractList(): ContractListResponse {
-        // 현재 코루틴의 격리된 컨텍스트 사용
-        val context = coroutineContext[IsolatedRequestContext.Key]
-            ?: throw IllegalStateException("IsolatedRequestContext not found")
-            
-        val state = context.getState()
-        // state.attributes와 state.securityContext 사용
+// SomeService.kt
+class SomeService {
+    suspend fun performAction() {
+        val attributes = coroutineContext.requestAttributes()
+            ?: throw IllegalStateException("RequestAttributes not found in coroutine context")
+        val securityContext = coroutineContext.securityContext()
+            ?: throw IllegalStateException("SecurityContext not found in coroutine context")
         
-        return // ... 비즈니스 로직
+        // 로직 수행
     }
-} 
+}
+
 ```
 
-3. 벙렬 처리시 사용
-```Kotlin
-@Service
-class ParallelProcessingService {
-    suspend fun processMultipleRequests() = withIsolatedContext {
-        // 각 코루틴이 독립된 컨텍스트를 가짐
-        coroutineScope {
-            launch {
-                // 컨텍스트 1
-                processRequest1()
-            }
-            
-            launch {
-                // 컨텍스트 2
-                processRequest2()
-            }
-        }
-    }
-} 
-```
+
+
 
 **이 구현의 장점:**
 
