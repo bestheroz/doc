@@ -416,3 +416,69 @@ suspend fun <T> withIsolatedContext(
     }
 }
 ```
+사용 예시
+1. 컨트롤러에서 사용:
+```Kotlin
+@RestController
+class ContractController(
+    private val contractService: ContractService
+) {
+    @PostMapping("/contracts")
+    suspend fun getContractList(): ResponseEntity<ContractListResponse> =
+        withIsolatedContext {
+            val result = contractService.getContractList()
+            ResponseEntity.ok(result)
+        }
+} 
+```
+
+2. 서비스에서 사용:
+```Kotlin
+@Service
+class ContractService {
+    suspend fun getContractList(): ContractListResponse {
+        // 현재 코루틴의 격리된 컨텍스트 사용
+        val context = coroutineContext[IsolatedRequestContext.Key]
+            ?: throw IllegalStateException("IsolatedRequestContext not found")
+            
+        val state = context.getState()
+        // state.attributes와 state.securityContext 사용
+        
+        return // ... 비즈니스 로직
+    }
+} 
+```
+
+3. 벙렬 처리시 사용
+```Kotlin
+@Service
+class ParallelProcessingService {
+    suspend fun processMultipleRequests() = withIsolatedContext {
+        // 각 코루틴이 독립된 컨텍스트를 가짐
+        coroutineScope {
+            launch {
+                // 컨텍스트 1
+                processRequest1()
+            }
+            
+            launch {
+                // 컨텍스트 2
+                processRequest2()
+            }
+        }
+    }
+} 
+```
+
+**이 구현의 장점:**
+
+1. 각 코루틴이 독립된 컨텍스트를 가짐
+2. 컨텍스트 전환이 안전하게 관리됨
+3. 자원이 적절히 정리됨
+4. 중첩된 코루틴에서도 안전하게 동작
+5. 테스트하기 쉬움
+
+주의사항:
+1. 항상 withIsolatedContext 블록 내에서 실행해야 함
+2. 컨텍스트가 필요한 모든 서비스는 코루틴 컨텍스트를 통해 접근해야 함
+3. 예외 발생 시에도 컨텍스트가 원래대로 복원되도록 주의
