@@ -348,15 +348,23 @@ withRequestContext(requestAttributes) {
 먼저, 기존에 ThreadContextElement를 구현하여 스레드 로컬 변수를 관리하던 방식을 변경합니다. 대신, 코루틴 컨텍스트에 데이터를 저장하는 간단한 컨텍스트 요소로 변경합니다.
 
 ```Kotlin
-// RequestContextElement.kt
 class RequestContextElement(
-    val attributes: RequestAttributes
+    val requestAttributes: RequestAttributes
 ) : CoroutineContext.Element {
     companion object Key : CoroutineContext.Key<RequestContextElement>
     override val key: CoroutineContext.Key<RequestContextElement> = Key
 }
 
-// SecurityContextElement.kt
+fun requestContextElement(): RequestContextElement {
+    val attributes = RequestContextHolder.currentRequestAttributes()
+    return RequestContextElement(attributes)
+}
+
+// 확장 함수로 컨텍스트 접근 제공
+fun CoroutineContext.requestAttributes(): RequestAttributes? =
+    this[RequestContextElement]?.requestAttributes
+        ?: throw IllegalStateException("RequestAttributes not found in context")
+
 class SecurityContextElement(
     val securityContext: SecurityContext
 ) : CoroutineContext.Element {
@@ -364,43 +372,29 @@ class SecurityContextElement(
     override val key: CoroutineContext.Key<SecurityContextElement> = Key
 }
 
-```
+fun securityContextElement(): SecurityContextElement {
+    val securityContext = SecurityContextHolder.getContext()
+    return SecurityContextElement(securityContext)
+}
 
-2. 헬퍼 함수 추가
-
-코루틴 컨텍스트에서 쉽게 데이터를 가져올 수 있도록 헬퍼 함수를 추가합니다.
-
-```Kotlin
-// CoroutineContextExtensions.kt
-fun CoroutineContext.requestAttributes(): RequestAttributes? =
-    this[RequestContextElement]?.attributes
-
-fun CoroutineContext.securityContext(): SecurityContext? =
+fun CoroutineContext.securityContext(): SecurityContext =
     this[SecurityContextElement]?.securityContext
-
+        ?: throw IllegalStateException("SecurityContext not found in context")
 ```
 
-3. 컨트롤러 수정
+2. 컨트롤러 수정
 
 컨트롤러에서 runBlocking이나 launch를 사용할 때, 코루틴 컨텍스트에 RequestContextElement와 SecurityContextElement를 추가합니다.
 
 ```Kotlin
 // Controller.kt
-fun getContractAllList(): ResponseEntity<ContractListResponse> = runBlocking {
-    val attributes = RequestContextHolder.currentRequestAttributes()
-    val securityContext = SecurityContextHolder.getContext()
-    
-    // 코루틴 컨텍스트에 요소 추가
-    val context = coroutineContext + RequestContextElement(attributes) + SecurityContextElement(securityContext)
-    
-    withContext(context) {
-        // 코루틴 컨텍스트에서 데이터 가져오기
-        val currentAttributes = coroutineContext.requestAttributes()
-            ?: throw IllegalStateException("RequestAttributes not found in coroutine context")
-        val currentSecurityContext = coroutineContext.securityContext()
-            ?: throw IllegalStateException("SecurityContext not found in coroutine context")
-        // 필요한 로직 수행
-    }
+fun SomeMethod(): ResponseEntity<SomeMethodResponse> = runBlocking(requestContextElement() + securityContextElement()) {
+    // 코루틴 컨텍스트에서 데이터 가져오기
+    val currentAttributes = coroutineContext.requestAttributes()
+        ?: throw IllegalStateException("RequestAttributes not found in coroutine context")
+    val currentSecurityContext = coroutineContext.securityContext()
+        ?: throw IllegalStateException("SecurityContext not found in coroutine context")
+    // 필요한 로직 수행
 }
 
 ```
