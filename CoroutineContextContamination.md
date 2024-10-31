@@ -348,6 +348,7 @@ withRequestContext(requestAttributes) {
 먼저, 기존에 ThreadContextElement를 구현하여 스레드 로컬 변수를 관리하던 방식을 변경합니다. 대신, 코루틴 컨텍스트에 데이터를 저장하는 간단한 컨텍스트 요소로 변경합니다.
 
 ```Kotlin
+// 컨텍스트 요소 정의
 class RequestContextElement(
     val requestAttributes: RequestAttributes
 ) : CoroutineContext.Element {
@@ -355,10 +356,10 @@ class RequestContextElement(
     override val key: CoroutineContext.Key<RequestContextElement> = Key
 }
 
-fun requestContextElement(): RequestContextElement {
-    val attributes = RequestContextHolder.currentRequestAttributes()
-    return RequestContextElement(attributes)
-}
+fun requestContextElement(): RequestContextElement = RequestContextElement(
+    RequestContextHolder.getRequestAttributes()
+        ?: throw IllegalStateException("RequestAttributes not found in context")
+)
 
 // 확장 함수로 컨텍스트 접근 제공
 fun CoroutineContext.requestAttributes(): RequestAttributes? =
@@ -372,10 +373,7 @@ class SecurityContextElement(
     override val key: CoroutineContext.Key<SecurityContextElement> = Key
 }
 
-fun securityContextElement(): SecurityContextElement {
-    val securityContext = SecurityContextHolder.getContext()
-    return SecurityContextElement(securityContext)
-}
+fun securityContextElement(): SecurityContextElement = SecurityContextElement(SecurityContextHolder.getContext())
 
 fun CoroutineContext.securityContext(): SecurityContext =
     this[SecurityContextElement]?.securityContext
