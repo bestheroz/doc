@@ -364,7 +364,6 @@ fun requestContextElement(): RequestContextElement = RequestContextElement(
 // 확장 함수로 컨텍스트 접근 제공
 fun CoroutineContext.requestAttributes(): RequestAttributes? =
     this[RequestContextElement]?.requestAttributes
-        ?: throw IllegalStateException("RequestAttributes not found in context")
 
 class SecurityContextElement(
     val securityContext: SecurityContext
@@ -375,9 +374,9 @@ class SecurityContextElement(
 
 fun securityContextElement(): SecurityContextElement = SecurityContextElement(SecurityContextHolder.getContext())
 
-fun CoroutineContext.securityContext(): SecurityContext =
+fun CoroutineContext.securityContext(): SecurityContext? =
     this[SecurityContextElement]?.securityContext
-        ?: throw IllegalStateException("SecurityContext not found in context")
+
 ```
 
 2. 컨트롤러 수정
@@ -397,7 +396,7 @@ fun SomeMethod(): ResponseEntity<SomeMethodResponse> = runBlocking(requestContex
 
 ```
 
-4. 필요한 곳에서 코루틴 컨텍스트 사용
+3. 필요한 곳에서 코루틴 컨텍스트 사용
 
 만약 다른 서비스나 컴포넌트에서 RequestAttributes나 SecurityContext가 필요하다면, 코루틴 컨텍스트에서 가져옵니다.
 
@@ -414,6 +413,33 @@ class SomeService {
     }
 }
 
+```
+
+4. `runBlocking` 중첩 호출
+```Kotlin
+runBlocking(requestContextElement() + securityContextElement()) {
+    // 이 내부에서는 requestContextElement와 securityContextElement가 포함된 컨텍스트를 사용합니다.
+
+    runBlocking {
+        // 별도의 컨텍스트 요소를 지정하지 않았으므로, 상위의 컨텍스트를 상속받습니다.
+        // 따라서 여기서도 requestContextElement와 securityContextElement를 사용할 수 있습니다.
+
+        runBlocking {
+            // 마찬가지로 상위 컨텍스트를 그대로 상속받습니다.
+        }
+    }
+}
+```
+하지만, 만약 하위 코루틴에서 컨텍스트 요소를 재정의하면 상황이 달라집니다
+```Kotlin
+runBlocking(requestContextElement() + securityContextElement()) {
+    runBlocking(requestContextElement()) {
+        // 여기서는 securityContextElement가 상위에서 설정되었지만,
+        // 하위에서 requestContextElement를 다시 지정했기 때문에
+        // 상위의 requestContextElement를 덮어쓰게 됩니다.
+        // securityContextElement는 상속되므로 그대로 사용할 수 있습니다.
+    }
+}
 ```
 
 
