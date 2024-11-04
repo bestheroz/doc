@@ -2,6 +2,8 @@
 
 ## 목록
 
+- [Redis Pub/Sub 메시지 중복 처리를 방지하는 방법](markdown/AvoidDuplicateProcessingInRedisPubSub.md)
+- [Redis Stream 메시지 중복 처리를 방지하는 방법](markdown/AvoidDuplicateProcessingInRedisStream.md)
 - [Redis Stream 의 ACK](markdown/RedisStreamAck.md)
 - [Kafka 메시지 중복 처리를 방지하는 방법](markdown/AvoidDuplicateProcessingInKafka.md)
 - [Redis Pub/sub 특징(kafka 와 비교)](markdown/RedisPubSub.md)
