@@ -35,26 +35,44 @@ Kafka는 기본적으로 **Consumer Group**을 사용하여 메시지의 중복 
    **예시: transaction_id를 이용한 멱등성 구현**
 
    ```java
+   // Atomic Operations in the Database
    public void process(ConsumerRecord<String, String> record) {
-       String transactionId = record.value().get("transaction_id");
-       if (!isProcessed(transactionId)) {
-           // 메시지 처리 로직
-           performBusinessLogic(record.value());
-           // 처리된 transactionId 저장
-           markAsProcessed(transactionId);
-       } else {
-           // 이미 처리된 메시지
+     String transactionId = record.value().get("transaction_id");
+     if (markAsProcessing(transactionId)) {
+       try {
+         // 메시지 처리 로직
+         performBusinessLogic(record.value());
+         // 처리 완료 상태 업데이트
+         markAsProcessed(transactionId);
+       } catch (Exception e) {
+         // 에러 처리 및 상태 롤백
+         markAsFailed(transactionId);
        }
+     } else {
+       // 이미 처리 중이거나 처리된 메시지
+     }
    }
-
-   private boolean isProcessed(String transactionId) {
-       // 데이터베이스 또는 캐시에서 확인
-       return database.exists(transactionId);
+   
+   private boolean markAsProcessing(String transactionId) {
+     try {
+       // 트랜잭션 ID를 상태와 함께 삽입 (예: "PROCESSING")
+       // transactionId를 PRIMARY KEY로 사용하여 중복 방지
+       database.insert(transactionId, "PROCESSING");
+       return true;
+     } catch (DuplicateKeyException e) {
+       // 이미 처리 중이거나 처리된 경우
+       return false;
+     }
    }
-
+   
    private void markAsProcessed(String transactionId) {
-       // 데이터베이스 또는 캐시에 저장
-       database.insert(transactionId);
+     // 상태를 "PROCESSED"로 업데이트
+     database.updateStatus(transactionId, "PROCESSED");
+   }
+   
+   private void markAsFailed(String transactionId) {
+     // 상태를 "FAILED"로 업데이트하거나 삭제
+     database.updateStatus(transactionId, "FAILED");
    }
    ```
 
