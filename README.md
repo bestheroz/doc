@@ -2,10 +2,14 @@
 
 ## 목록
 
+- [지수 백오프(Exponential Backoff)]
+- [Redis Pub/Sub 메시지 처리 시 장애 대응 방법](markdown/HandleFailuresInMessageProcessingOnRedisPubSub.md)
+- [Redis Stream 메시지 처리 시 장애 대응 방법](markdown/HandleFailuresInMessageProcessingOnRedisStream.md)
+- [Kafka 메시지 처리 시 장애 대응 방법](markdown/HandleFailuresInMessageProcessingOnKafka.md)
 - [Redis Pub/Sub 메시지 중복 처리를 방지하는 방법](markdown/AvoidDuplicateProcessingInRedisPubSub.md)
 - [Redis Stream 메시지 중복 처리를 방지하는 방법](markdown/AvoidDuplicateProcessingInRedisStream.md)
-- [Redis Stream 의 ACK](markdown/RedisStreamAck.md)
 - [Kafka 메시지 중복 처리를 방지하는 방법](markdown/AvoidDuplicateProcessingInKafka.md)
+- [Redis Stream 의 ACK](markdown/RedisStreamAck.md)
 - [Redis Pub/sub 특징(kafka 와 비교)](markdown/RedisPubSub.md)
 - [코루틴의 논블럭킹 동작](markdown/CoroutineNonBlocking.md)
 - [코틀린+코루틴에서의 컨텍스트 오염 방지](markdown/CoroutineContextContamination.md)
