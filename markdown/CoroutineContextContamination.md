@@ -134,7 +134,7 @@ override fun restoreThreadContext(
         // 스레드 A
         val oldStateA = RequestContextHolder.getRequestAttributes() // 스레드 A의 상태
         RequestContextHolder.setRequestAttributes(attributes)       // 스레드 A에만 영향
-    
+        
         // 동시에 스레드 B
         val oldStateB = RequestContextHolder.getRequestAttributes() // 스레드 B의 상태
         RequestContextHolder.setRequestAttributes(attributes)       // 스레드 B에만 영향
@@ -178,12 +178,11 @@ runBlocking(RequestContextElement(currentAttributes)) {
    - 코루틴 컨텍스트를 통한 체계적인 생명주기 관리
    - 불변 객체를 통한 상태 관리
 
-
 **이러한 메커니즘들이 조합되어 멀티 스레드 환경에서도 각 스레드의 RequestAttributes가 독립적이고 안전하게 관리됨**
 
 ## 하나의 스레드에서 여러 요청의 코루틴이 동시에 처리될때 안전한가?
 
--> 결론: 컨텍스트가 오염되는 이슈가 발생함
+-> 결론: **컨텍스트가 오염되는 이슈가 발생함**
 
 ```Kotlin
 // 스레드 1에서 실행
@@ -454,6 +453,6 @@ runBlocking(requestContextElement() + securityContextElement()) {
 5. 테스트하기 쉬움
 
 주의사항:
-1. 항상 withIsolatedContext 블록 내에서 실행해야 함
+1. 항상 `runBlocking(requestContextElement() + securityContextElement()) { }` 블록 내에서 실행해야 함
 2. 컨텍스트가 필요한 모든 서비스는 코루틴 컨텍스트를 통해 접근해야 함
 3. 예외 발생 시에도 컨텍스트가 원래대로 복원되도록 주의
