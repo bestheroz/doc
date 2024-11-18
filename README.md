@@ -2,6 +2,7 @@
 
 ## 목록
 
+- [JIT(Just In Time)](markdown/JITInJava.md)
 - [지수 백오프(Exponential Backoff)](markdown/ExponentialBackoff.md)
 - [Redis Pub/Sub 메시지 처리 시 장애 대응 방법](markdown/HandleFailuresInMessageProcessingOnRedisPubSub.md)
 - [Redis Stream 메시지 처리 시 장애 대응 방법](markdown/HandleFailuresInMessageProcessingOnRedisStream.md)
