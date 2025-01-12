@@ -52,22 +52,22 @@ doSomething {
     ```kotlin
     // 1. 객체 초기화와 계산을 동시에 할 때
     val result = user.run {
-    name = "새이름"
-    age = 25
-    calculateInsurance() // 마지막 계산 결과 반환
+        name = "새이름"
+        age = 25
+        calculateInsurance() // 마지막 계산 결과 반환
     }
     
     // 2. 여러 작업을 그룹화하고 결과를 반환할 때
     val isValid = inputData.run {
-    validate()
-    transform()
-    save() // 저장 성공 여부 반환
+        validate()
+        transform()
+        save() // 저장 성공 여부 반환
     }
     
     // 3. 객체 생성 없이 블록 실행이 필요할 때
     val result = run {
-    val temp = complexCalculation()
-    temp * 2
+        val temp = complexCalculation()
+        temp * 2
     }
     ```
 
