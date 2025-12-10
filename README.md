@@ -2,6 +2,7 @@
 
 ## 목록
 
+- [코트린 블록함수(Kotlin block functions)](markdown/KotlinBlockFunctions.md)
 - [JIT(Just In Time)](markdown/JITInJava.md)
 - [지수 백오프(Exponential Backoff)](markdown/ExponentialBackoff.md)
 - [Redis Pub/Sub 메시지 처리 시 장애 대응 방법](markdown/HandleFailuresInMessageProcessingOnRedisPubSub.md)
