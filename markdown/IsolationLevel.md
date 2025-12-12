@@ -33,6 +33,43 @@ A: 다시 조회 → 11명?? → 유령처럼 데이터가 생김
 ```
 **같은 조건인데 행(row) 개수가 바뀜**
 
+
+## Phantom Read (유령 읽기)
+
+> **같은 조건으로 조회했는데 행(row) 개수가 달라지는 현상**
+
+---
+
+### Non-Repeatable Read와 차이점
+
+| | Non-Repeatable Read | Phantom Read |
+|--|--|--|
+| 뭐가 바뀜? | 기존 행의 **값** | 행의 **개수** |
+| 원인 | UPDATE | INSERT / DELETE |
+| 예시 | 잔액 100→50 | 10명→11명 |
+
+---
+
+### 실무 예제: 좌석 예매
+
+```
+1. 트랜잭션A: 빈 좌석 조회 → 10석 남음
+   SELECT COUNT(*) FROM seats WHERE status = 'empty';
+
+2. 트랜잭션B: 새 좌석 추가 (또는 예매 취소로 빈 좌석 생김)
+   INSERT INTO seats (status) VALUES ('empty');
+   COMMIT;
+
+3. 트랜잭션A: 다시 조회 → 11석?? 
+   "아까 10석이었는데..."
+```
+
+---
+
+### 방지 방법
+
+**SERIALIZABLE** 사용
+
 ---
 
 1. READ UNCOMMITTED (가장 낮은 격리 수준)
